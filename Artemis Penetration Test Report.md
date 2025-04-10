@@ -324,75 +324,124 @@ The goal of this summary is to assess the potential threats and risks associated
 
 **1\. Unpatched RDP Exposed to the Internet**  
 **Description:** Remote Desktop Protocol (RDP) services without the proper security controls are exposed to the internet, making them susceptible to brute-force attacks and known exploits such as CVE-2019-0708 (BlueKeep). This vulnerability affects Windows Server 2012, 2016, 2019, and Windows 10/11 systems.  
+
 **Detection Tools:** Vulnerability scanners such as Nessus and OpenVAS make it possible to detect open RDP ports and identify outdated or unpatched versions that may pose a security risk.  
-**Risks:** Exploitation may allow for unauthorized remote access to the Artemis internal network, potentially leading to data exfiltration, lateral movement, or ransomware deployment. Brute-force techniques may be used by attackers to guess weak credentials or leverage existing RDP vulnerabilities to execute malicious code on the system. While IDS/IPS may help monitor and block suspicious login attempts, attackers may evade detection by using slow brute-force attacks with tools like crowbar, or by leveraging stolen credentials from previous breaches. If login credentials are obtained, attackers can dump NTLM password hashes and crack them offline using hashcat, allowing privilege escalation and deeper access into the Artemis network.  
+
+**Risks:** Exploitation may allow for unauthorized remote access to the Artemis internal network, potentially leading to data exfiltration, lateral movement, or ransomware deployment. Brute-force techniques may be used by attackers to guess weak credentials or leverage existing RDP vulnerabilities to execute malicious code on the system. While IDS/IPS may help monitor and block suspicious login attempts, attackers may evade detection by using slow brute-force attacks with tools like crowbar, or by leveraging stolen credentials from previous breaches. If login credentials are obtained, attackers can dump NTLM password hashes and crack them offline using hashcat, allowing privilege escalation and deeper access into the Artemis network. 
+
 **Remediation:** Apply the latest security patches to all RDP-enabled systems and disable public RDP access, requiring VPN connections for remote access. MFA should be enforced for all remote users to prevent unauthorized logins. Login attempts should be monitored for unusual activity, account lockout policies enforced, and RDP access restricted to specific trusted IP addresses to reduce exposure.  
+
 **CVSS Score:** 9.8 (Critical)   
+
 ---
 
 **2\. Web Application Vulnerable to SQL Injection**  
 **Description:** SQL Injection is a critical vulnerability that allows attackers to manipulate database queries by injecting malicious SQL statements through user input fields. Artemis web applications interact with MySQL, PostgreSQL, and Microsoft SQL Server databases. If the web application does not properly sanitize user input, attackers can directly communicate with the backend database, potentially leading to data theft or administrative control over the system.  
+
 **Detection Tools:** Burp Suite, Wapiti, and w3af can scan the Artemis web applications for SQLi vulnerabilities and assess exploitability.  
+
 **Risks:** Exploiting SQL injection can extract sensitive customer information, credentials, or proprietary data from Artemis databases. They may also be able to modify or delete critical records, disrupt business operations, or escalate privileges to gain administrative access. Automated tools such as SQLmap can enumerate database structures and extract confidential information. WAFs and input validation can help to mitigate SQLi attacks, but sophisticated obfuscation techniques may allow attackers to bypass. In extreme cases SQLi may lead to remote code execution, giving attackers full control over the application server.  
+
 **Remediation:** Implement parameterized queries and stored procedures to ensure user input cannot alter database commands. Enforce input validation to restrict potentially malicious characters. Deploy a WAF such as ModSecurity to help detect and block SQLi attempts in real time. Database servers should follow the principle of least privilege, ensuring web applications have the minimum level of access needed to function. Use automated scanning tools and manual code reviews alongside regular security testing to help identify and remediate SQL injection vulnerabilities before they can be exploited.  
+
 **CVSS Score:** 9.0 (Critical)  
+
 ---
 
 **3\. Default Password on Cisco Admin Portal**  
+
 **Description:** Many network devices including Cisco routers, switches, and firewalls come with default administrative credentials that are often left unchanged after deployment. Attackers can use these credentials to gain access to the Artemis network infrastructure. This vulnerability is particularly concerning given Artemis’ reliance on Cisco networking equipment, which plays a critical role in managing data flow across both their industrial and cloud environments.  
+
 **Detection Tools:** Nessus and OpenVAS can be used to detect default credentials and misconfigurations in network devices.  
+
 **Risks:** Successful login to a Cisco admin portal using default credentials can allow for full control over network configurations, allowing an attacker to modify firewall rules, disable security mechanisms, or create backdoor access for future attacks. Unauthorized access can also be leveraged for network reconnaissance, lateral movement, and data interception. Account lockout policies and monitoring tools can help detect suspicious login attempts, but slow brute-force attacks or credential stuffing using known default passwords may still be successful.  
+
 **Remediation:** Immediately change all default credentials on Cisco network devices and enforce strong, unique passwords for administrative accounts. MFA should be enabled wherever possible for an additional layer of security. Unnecessary administrative interfaces should also be disabled to reduce the attack surface. RBAC can also be implemented to ensure that only authorized personnel have access to network management functions. Additionally, regular network audits should be conducted to identify and remediate any misconfigured or weak authentication settings.  
+
 **CVSS Score:** 9.0 (Critical)  
+
 ---
 
 **4\. Apache Web Server Vulnerable to CVE-2019-0211**  
+
 **Description:** CVE-2019-0211 is a privilege escalation vulnerability in Apache Web Server versions prior to 2.4.39, which allows an attacker to execute arbitrary code with root-level privileges. This is particularly relevant to Artemis since Apache servers may be used to host internal applications or customer-facing services. Exploitation of this vulnerability can escalate privileges from a low-level web user to a full system administrator.  
+
 **Detection Tools:** Nessus and OpenVAS can identify outdated Apache versions and flag vulnerable configurations.   
+
 **Risks:** This vulnerability could allow for complete control over the web server, leading to data theft, defacement of company websites, or pivoting into the Artemis internal network. This could also allow attackers to execute arbitrary code, modify web content, or install persistent backdoors for future access. SELinux and hardened Apache configurations can mitigate the risk, but unpatched servers remain vulnerable to privilege escalation attacks.  
 Remediation: Upgrade all Apache servers to version 2.4.39 or later and apply the latest security patches. Unnecessary Apache modules should be disabled to reduce the attack surface, and access controls should be tightened to limit user privileges. Additionally, regular security assessments that use automated vulnerability scanners should be conducted to ensure compliance with industry best practices.  
+
 **CVSS Score:** 8.8 (High)  
+
 ---
 
 **5\. Web Server Exposing Sensitive Data**  
+
 **Description:** Misconfigured web servers can expose sensitive data such as confidential documents, user credentials, or proprietary company files. Access controls that are not properly implemented may allow for unauthorized users to view or download this information.  
+
 **Detection Tools:** Burp Suite and Wapiti are security tools that can scan web servers for exposed data and misconfigurations.  
+
 **Risks:** Sensitive data leaks may result in financial loss, regulatory penalties, and reputational damage to the company. Exposed data can also be exploited to launch further attacks, such as identity theft or social engineering.  
+
 **Remediation:** Restrict public access to sensitive files, enforce proper permissions, and regularly audit exposed endpoints in order to prevent unauthorized access.  
+
 **CVSS Score:** 8.0 (High)  
+
 ---
 
 **6\. Web Application Has Broken Access Control**  
 **Description:** Broken access control occurs when web applications fail to enforce proper restrictions on authenticated users which can allow for unauthorized access to sensitive resources or administrative functions. This is concerning for internal systems such as SAP ERP, PARS patent submission system, and APOLLO trade secrets repository, which contain confidential business data. Exploiting broken access control can allow attackers to escalate privileges, access restricted data, or manipulate system configurations.  
+
 **Detection Tools:** Burp Suite and w3af can be used to identify access control weaknesses in web applications.  
+
 **Risks:** Allowing attackers to gain unauthorized access to critical business applications and perform actions meant only for privileged users. This includes viewing confidential financial records, modifying intellectual property filings, or disabling security settings. Forced browsing, manipulated session tokens, or parameter tampering may be used to bypass authentication mechanisms.  
+
 **Remediation:** Implementation of RBAC to ensure that users only have access to data and functions necessary for their respective job roles. Web applications should enforce strict authorization checks at the server level, rather than relying solely on client-side enforcement. Session management improvements such as regenerating session tokens upon login and implementing timeout policies can also help to prevent unauthorized access. Lastly, conducting regular access control audits and penetration tests will help to identify and remediate any weak authorization mechanisms before they are exploited.  
+
 **CVSS Score:** 8.0 (High)  
+
 ---
 
 **7\. Oracle WebLogic Server Vulnerable to CVE-2020-14882**  
+
 **Description:** CVE-2020-14882 is a remote code execution vulnerability in the Oracle WebLogic Server that allows an unauthenticated attacker to execute arbitrary commands with administrative privileges. This is concerning because WebLogic is often used to host business-critical applications. Exploiting this flaw could allow for full control of affected WebLogic servers, disrupting internal operations.  
+
 **Detection Tools:** Nessus and OpenVAS can detect vulnerable WebLogic instances and flag outdated versions.  
+
 **Risks:** Allowing remote code execution, enabling attackers to install malware, exfiltrate sensitive data, or pivot to other systems within the network. WebLogic servers often handle enterprise applications and sensitive data, meaning a compromise could lead to financial loss, regulatory violations, and reputational damage. This vulnerability is typically exploited using malicious HTTP requests that target administrative endpoints. Network firewalls and IDS may help to mitigate exploitation attempts, but attackers can use obfuscated payloads to bypass signature-based detection mechanisms.  
+
 **Remediation:** Immediately apply the latest Oracle security patches to all WebLogic instances and monitor for signs of exploitation attempts. WebLogic administrative interfaces should be restricted to internal IP addresses only, while unnecessary services should be disabled to minimize exposure. WAFs with strict filtering rules can help prevent malicious HTTP requests from reaching vulnerable endpoints. Finally, implementing continuous security monitoring on WebLogic servers to detect anomalous activity and unauthorized access attempts.  
+
 **CVSS Score:** 9.8 (Critical)  
+
 ---
 
 **8\. Misconfigured Cloud Storage (AWS S3 Buckets, Security Groups)**  
+
 **Description:** Misconfigurations in cloud storage can expose sensitive data to unauthorized users, which can lead to potential data breaches. If storage containers are publicly accessible due to misconfigured access control policies, attackers could easily retrieve sensitive files. Insecure AWS security groups can also allow for unintended access to cloud-hosted infrastructures, making it vulnerable to exploitation.  
+
 **Detection Tools:** Nessus and OpenVAS can scan for exposed cloud storage and insecure access configurations.  
+
 **Risks:** Unaddressed cloud storage misconfigurations can allow attackers to exfiltrate sensitive data including customer information, financial records, proprietary research, and internal documents. A publicly exposed S3 bucket may also contain API keys, credentials, or server configurations, which could allow for privilege escalation and the compromise of additional cloud resources. Misconfigured AWS security groups may also permit unauthorized inbound or outbound network traffic, exposing cloud-based servers to attacks such as brute-force login attempts or remote code execution. While AWS Identity, IAM, and RBAC may help manage access, improper configurations can lead to significant gaps in security posture.  
+
 **Remediation:** Enforce strict IAM policies and ACLs to restrict public access to cloud storage and mitigate associated risks. Additionally, security teams should conduct regular audits of cloud storage permissions and ensure sensitive files are encrypted both in transit and at rest. Implementing AWS Security Hub or Azure Security Center can help to enforce compliance with best practices and identify misconfigured resources. Features such as AWS CloudTrail should be enabled for logging and monitoring, to track access attempts and detect suspicious activity. Security teams should also ensure the configuration of network segmentation and least privilege access to minimize the risk of lateral movement within the cloud environment.  
+
 **CVSS Score:** 8.5 (High)  
+
 ---
 
 **9\. Microsoft Exchange Server Vulnerable to CVE-2021-26855**  
+
 **Description:** CVE-2021-26855, also known as ProxyLogon, is a critical Microsoft Exchange Server vulnerability which allows remote attackers to bypass authentication and execute arbitrary commands on the mail server. This affects Exchange Server 2013, 2016, and 2019\. Artemis relies on Microsoft Exchange for both internal and external email communications, meaning an exploit against this service could lead to a severe security breach.  
+
 **Detection Tools:** Nessus and OpenVAS to scan for vulnerable Exchange servers and detect outdated versions that require patching.  
+
 **Risks:** Granting attackers unauthorized access to the email system, allowing them to exfiltrate sensitive business communications, steal credentials, or escalate privileges within the corporate network. By using ProxyLogon with additional vulnerabilities, attackers can achieve remote code execution, which could potentially lead to a full domain compromise. Unpatched Exchange servers are also a high-priority target for threat actors. Firewall and endpoint security solutions can detect some exploitation attempts, but attackers may use obfuscated payloads to bypass signature-based defenses.  
 Remediation: Immediately apply Microsoft’s security patches to all vulnerable Exchange servers. MFA should be enforced for email access, and network segmentation should be implemented in order to limit exposure. Additionally, Exchange logs should be monitored for IoCs such as unauthorized access attempts and abnormal administrative activities. Deployment of IDS/IPS can help detect exploitation attempts in real time. To further reduce risk, consider migrating to Exchange Online (Microsoft 365), which receives automatic security updates and provides built-in threat protection.  
+
 **CVSS Score:** 9.9 (Critical)
 
+---
 # **References** {#references}
 
 CVE Mitre. (n.d.). *Common vulnerabilities and exposures*. Retrieved from [https://cve.mitre.org](https://cve.mitre.org)
